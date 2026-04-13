@@ -129,35 +129,40 @@ def main():
     messages = []
     print("=== 多轮对话模式（流式输出）===")
     print("输入 'exit' 或 '退出' 结束对话")
+    print("按 Ctrl+C 强制退出")
     print("-" * 50)
 
-    while True:
-        user_input = input("\n你: ")
+    try:
+        while True:
+            user_input = input("\n你: ")
 
-        if user_input.lower() in ['exit', '退出']:
-            print("对话结束，再见！")
-            break
+            if user_input.lower() in ['exit', '退出']:
+                print("对话结束，再见！")
+                break
 
-        messages.append({"role": "user", "content": user_input})
-        assistant_response, stats = call_llm_stream(messages, env_vars)
+            messages.append({"role": "user", "content": user_input})
+            assistant_response, stats = call_llm_stream(messages, env_vars)
 
-        if assistant_response:
-            messages.append({
-                "role": "assistant",
-                "content": assistant_response
-            })
+            if assistant_response:
+                messages.append({
+                    "role": "assistant",
+                    "content": assistant_response
+                })
 
-            # 输出统计
-            print("本次统计信息")
-            print(f"耗时: {stats['total_time']} 秒")
-            print(f"提示token: {stats['prompt_tokens']}")
-            print(f"回复token: {stats['completion_tokens']}")
-            print(f"总token: {stats['total_tokens']}")
-            print(f"速度: {stats['tokens_per_second']} tokens/s")
-        else:
-            print("获取回复失败！")
-            if messages:
-                messages.pop()
+                # 输出统计
+                print("本次统计信息")
+                print(f"耗时: {stats['total_time']} 秒")
+                print(f"提示token: {stats['prompt_tokens']}")
+                print(f"回复token: {stats['completion_tokens']}")
+                print(f"总token: {stats['total_tokens']}")
+                print(f"速度: {stats['tokens_per_second']} tokens/s")
+            else:
+                print("获取回复失败！")
+                if messages:
+                    messages.pop()
+    except KeyboardInterrupt:
+        print("\n\n检测到Ctrl+C，对话结束！")
+        print("感谢使用，再见！")
 
 
 if __name__ == "__main__":
