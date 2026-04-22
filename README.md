@@ -124,6 +124,99 @@ python practice01/llm_client.py
 - 历史记录：自动将对话历史添加到上下文中
 - 性能统计：每次对话后显示详细的性能数据
 
+### 运行工具调用功能（流式输出）
+
+```bash
+# 交互式模式
+python practice02/tool_client.py
+
+# 命令行模式
+python practice02/tool_client.py 列出当前目录的文件
+python practice02/tool_client.py 访问百度
+```
+
+**工具调用功能**：
+- **list_files**：列出目录下的文件及其属性
+- **rename_file**：修改文件名称
+- **delete_file**：删除文件
+- **create_file**：创建文件并写入内容
+- **read_file**：读取文件内容
+- **curl**：通过网络访问网页并返回网页内容
+
+**使用示例**：
+```
+=== 工具调用模式（流式输出）===
+输入 'exit' 或 '退出' 结束对话
+按 Ctrl+C 强制退出
+--------------------------------------------------
+
+你: 列出当前目录的文件
+
+助手: {"tool_call": {"name": "list_files", "args": {"directory": "."}}}
+
+执行工具调用: list_files
+工具执行结果: {"status": "success", "data": [{"name": "README.md", "type": "file", "size": 3000, "mtime": "2026-04-15 10:00:00", "path": ".\README.md"}, ...]}
+
+本次统计信息
+耗时: 1.23 秒
+提示token: 100
+回复token: 50
+总token: 150
+速度: 121.95 tokens/s
+
+你: 访问百度
+
+助手: {"tool_call": {"name": "curl", "args": {"url": "https://www.baidu.com"}}}
+
+执行工具调用: curl
+工具执行结果: {"status": "success", "data": "<!DOCTYPE html>... (内容过长，已截断)"}
+
+本次统计信息
+耗时: 0.56 秒
+提示token: 150
+回复token: 60
+总token: 210
+速度: 375.00 tokens/s
+```
+
+### practice03 工具调用示例
+
+#### 1. 列出目录文件
+
+```
+你: 列出当前目录的文件
+助手: {"tool_call": {"name": "list_files", "args": {"directory": "."}}}
+```
+
+#### 2. 创建文件
+
+```
+你: 创建一个名为test.txt的文件，内容为"Hello World"
+助手: {"tool_call": {"name": "create_file", "args": {"directory": ".", "file_name": "test.txt", "content": "Hello World"}}}
+```
+
+#### 3. 读取文件
+
+```
+你: 读取test.txt文件
+助手: {"tool_call": {"name": "read_file", "args": {"directory": ".", "file_name": "test.txt"}}}
+```
+
+#### 4. 网络访问
+
+```
+你: 访问百度
+助手: {"tool_call": {"name": "curl", "args": {"url": "https://www.baidu.com"}}}
+```
+
+### 聊天历史压缩机制
+
+- **触发条件**：对话轮数超过5轮或上下文长度超过3000字符
+- **压缩策略**：保留最近30%的对话原文，压缩前70%的内容
+- **压缩方式**：调用LLM对前70%的对话内容进行总结
+- **压缩效果**：减少上下文长度，提高对话效率
+- **关键信息提取**：每5轮对话自动提取关键信息，按照5W规则记录到本地日志文件
+
 ### 示例对话
 
 ```
@@ -233,6 +326,11 @@ code_AI/
 ├── .gitignore           # Git忽略文件
 ├── practice01/          # 练习代码目录
 │   └── llm_client.py    # LLM客户端实现
+├── practice02/          # 工具调用功能目录
+│   └── tool_client.py   # 带工具调用的LLM客户端
+├── practice03/          # 工具调用客户端（带聊天历史压缩）
+│   ├── tool_client.py   # 主程序文件
+│   └── README.md        # 项目说明文档
 ├── README.md            # 项目文档
 └── venv/                # 虚拟环境（自动生成）
 ```
@@ -277,6 +375,59 @@ def main():
 **退出机制**：
 - 正常退出：输入`exit`或`退出`
 - 强制退出：捕获`KeyboardInterrupt`异常（Ctrl+C）
+
+### 4. 工具调用功能（practice02）
+
+**核心功能**：
+- 工具函数：实现文件操作和网络访问功能
+- 工具调用解析：解析LLM返回的工具调用请求
+- 工具执行：执行相应的工具函数并返回结果
+- 系统提示词：包含工具调用能力的系统提示词
+
+**工具函数**：
+
+```python
+# 列出目录下的文件及其属性
+def list_files(directory):
+    # 实现文件列表功能
+
+# 修改文件名称
+def rename_file(directory, old_name, new_name):
+    # 实现文件重命名功能
+
+# 删除文件
+def delete_file(directory, file_name):
+    # 实现文件删除功能
+
+# 创建文件并写入内容
+def create_file(directory, file_name, content):
+    # 实现文件创建功能
+
+# 读取文件内容
+def read_file(directory, file_name):
+    # 实现文件读取功能
+
+# 网络访问
+def curl(url):
+    # 实现网络访问功能
+```
+
+**工具调用解析**：
+
+```python
+def parse_tool_call(response):
+    # 解析LLM返回的工具调用请求
+    # 处理Markdown代码块
+    # 提取工具名称和参数
+```
+
+**工具执行**：
+
+```python
+def execute_tool_call(tool_name, tool_args):
+    # 根据工具名称执行相应的工具函数
+    # 返回工具执行结果
+```
 
 ## 贡献指南
 
