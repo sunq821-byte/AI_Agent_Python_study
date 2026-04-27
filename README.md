@@ -318,21 +318,90 @@ messages = [
 - 建议在对话完成后使用正常退出方式
 - 如果程序卡住，可以使用强制退出
 
+### practice05 技能动态加载客户端
+
+```bash
+# 交互式模式
+python practice05/skill_client.py
+
+# 命令行单次模式
+python practice05/skill_client.py 帮我撰写一个关于五一节放假的通知
+python practice05/skill_client.py 我是销售部的，请帮我撰写五一放假通知
+```
+
+**核心特性**：
+- **技能发现**：启动时自动扫描 `.agents/skills/` 目录，读取所有 `SKILL.md` 的 YAML front matter
+- **技能列表注入**：将可用技能以 JSON 格式注入 system prompt，让 LLM 知道有哪些技能可用
+- **技能按需加载**：LLM 判断需要某技能时，调用 `load_skill_content` 工具动态加载技能正文
+- **规则强制执行**：技能正文通过对话注入，LLM 必须严格遵照执行
+
+**关键函数**：
+
+```python
+# 读取所有可用技能的名称和描述
+def list_available_skills() -> str:
+    # 扫描 .agents/skills/ 下所有子目录
+    # 解析每个 SKILL.md 的 YAML front matter
+    # 返回 JSON 格式的技能列表
+
+# 读取指定技能的正文内容
+def load_skill_content(skill_name: str) -> str | None:
+    # 按技能名称查找对应的 SKILL.md
+    # 返回 YAML front matter 之后的正文内容
+```
+
+**技能目录结构**：
+
+```
+.agents/
+└── skills/
+    └── notice/           # 通知撰写技能
+        └── SKILL.md      # 技能定义文件（YAML front matter + 规则正文）
+```
+
+**SKILL.md 格式**：
+
+```markdown
+---
+name: notice
+description: 撰写、修改、润色通知文件。当用户要求撰写通知时使用此技能。
+---
+
+# 通知撰写技能
+
+## 核心规则
+1. 禁止以"通知"二字开头...
+```
+
+**测试结果**：
+
+| 测试场景 | 用户输入 | LLM 行为 | 输出结果 |
+|---|---|---|---|
+| 未说明部门 | "帮我撰写一个关于五一节放假的通知" | 自动调用 notice 技能 | 以"XX部通知"开头 ✓ |
+| 明确销售部 | "我是销售部的，请帮我撰写五一放假通知" | 自动调用 notice 技能 | 以"销售部通知"开头 ✓ |
+
 ## 项目结构
 
 ```
 code_AI/
-├── .env.example          # 环境变量模板
-├── .gitignore           # Git忽略文件
-├── practice01/          # 练习代码目录
-│   └── llm_client.py    # LLM客户端实现
-├── practice02/          # 工具调用功能目录
-│   └── tool_client.py   # 带工具调用的LLM客户端
-├── practice03/          # 工具调用客户端（带聊天历史压缩）
-│   ├── tool_client.py   # 主程序文件
-│   └── README.md        # 项目说明文档
-├── README.md            # 项目文档
-└── venv/                # 虚拟环境（自动生成）
+├── .env                  # 环境变量配置
+├── .agents/
+│   └── skills/           # 技能目录
+│       └── notice/       # 通知撰写技能
+│           └── SKILL.md
+├── practice01/           # 基础多轮对话
+│   └── llm_client.py
+├── practice02/           # 工具调用
+│   └── tool_client.py
+├── practice03/           # 聊天历史压缩
+│   ├── tool_client.py
+│   └── README.md
+├── practice04/           # 完整工具调用客户端
+│   └── tool_client.py
+├── practice05/           # 技能动态加载客户端
+│   └── skill_client.py
+├── README.md             # 项目文档
+└── venv/                 # 虚拟环境（自动生成）
 ```
 
 ## 核心功能模块
