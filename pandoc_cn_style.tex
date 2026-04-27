@@ -1,0 +1,130 @@
+% Pandoc PDF style for Chinese survey reports
+% 适配实验报告封面样式 - 成都东软学院
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{etoolbox}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tikz}
+
+% 页面布局：A4纸张，2.54cm边距
+\geometry{
+  a4paper,
+  top=2.54cm,
+  bottom=2.54cm,
+  left=2.54cm,
+  right=2.54cm
+}
+
+% 中文字体设置
+\setCJKmainfont{SimSun}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{SimSun}
+
+% 正文格式：12pt字号，1.8倍行距
+\linespread{1.8}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0pt}
+
+% 标题格式
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalfont\fontsize{18pt}{27pt}\selectfont\bfseries}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\fontsize{15pt}{22.5pt}\selectfont\bfseries}
+  {\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\fontsize{13pt}{19.5pt}\selectfont\bfseries}
+  {\thesubsubsection}{1em}{}
+
+\titlespacing*{\section}{0pt}{1.2cm}{0.6cm}
+\titlespacing*{\subsection}{0pt}{0.8cm}{0.4cm}
+\titlespacing*{\subsubsection}{0pt}{0.6cm}{0.3cm}
+
+% 代码块样式
+\lstset{
+  backgroundcolor=\color{gray!10},
+  basicstyle=\fontsize{11pt}{11pt}\ttfamily,
+  frame=single,
+  framesep=10pt,
+  xleftmargin=15pt,
+  xrightmargin=15pt,
+  breaklines=true,
+  captionpos=b
+}
+
+% 表格格式
+\AtBeginEnvironment{tabular}{
+  \fontsize{12pt}{12pt}\selectfont
+  \renewcommand{\arraystretch}{1.2}
+}
+\AtBeginEnvironment{longtable}{
+  \fontsize{12pt}{12pt}\selectfont
+  \renewcommand{\arraystretch}{1.2}
+}
+
+% 阻止自动生成标题页
+\AtBeginDocument{\let\maketitle\relax}
+
+% 页眉页脚：仅页脚居中显示页码
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% 图片位置控制
+\floatplacement{figure}{htbp}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\setkeys{Gin}{width=0.9\linewidth,keepaspectratio}
+\captionsetup[figure]{font={small},justification=centering,singlelinecheck=false,skip=6pt}
+
+% 封面页命令
+\usepackage{afterpage}
+\newcommand{\customcover}{%
+  \thispagestyle{empty}%
+  \begin{tikzpicture}[remember picture, overlay]
+    % 右上角 logo
+    \node[anchor=north east, inner sep=0pt] at
+      ([xshift=-1.5cm, yshift=-1.2cm]current page.north east)
+      {\includegraphics[height=1.8cm]{logo.png}};
+    % 顶部横线（在 logo 与标题之间）
+    \draw[black, line width=1pt] 
+      ([xshift=2cm, yshift=-3.3cm]current page.north west) -- 
+      ([xshift=-2cm, yshift=-3.3cm]current page.north east);
+  \end{tikzpicture}%
+  \begin{center}
+    \vspace*{3.5cm}
+    {\fontsize{36pt}{44pt}\selectfont\bfseries 成都东软学院}
+    \\[20pt]
+    {\fontsize{18pt}{24pt}\selectfont\bfseries 实\hspace{0.6em}验\hspace{0.6em}报\hspace{0.6em}告}
+    \vspace{2.5cm}
+
+    % 信息表格（居中，带下划线）
+    \renewcommand{\arraystretch}{2.2}
+    \begin{tabular}{@{}r@{\hspace{0.8em}}l@{}}
+      课程名称： & \underline{\makebox[4.5cm][c]{人工智能提示工程}} \\
+      指导教师： & \underline{\makebox[4.5cm][c]{谢\hspace{0.3cm}心}} \\
+      学\qquad 院： & \underline{\makebox[4.5cm][c]{数智应用技术学院}} \\
+      年级专业： & \underline{\makebox[4.5cm][c]{24\,级软件工程}} \\
+      班\qquad 级： & \underline{\makebox[4.5cm][c]{24402}} \\
+      学\qquad 号： & \underline{\makebox[4.5cm][c]{24068240217}} \\
+      姓\qquad 名： & \underline{\makebox[4.5cm][c]{陶俊辉}} \\
+    \end{tabular}
+  \end{center}
+  \clearpage
+}

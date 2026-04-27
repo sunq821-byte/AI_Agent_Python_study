@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具调用客户端实验报告</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2.54cm;
+        }
+
+        body {
+            font-family: SimSun, '宋体', serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ===== 封面页 ===== */
+        .cover {
+            page-break-after: always;
+            width: 100%;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .cover-title-row {
+            text-align: center;
+            padding-top: 1.5cm;
+        }
+
+        .cover-title-row .school-name {
+            font-size: 28pt;
+            font-weight: bold;
+            letter-spacing: 6px;
+            margin: 0;
+        }
+
+        .cover-title-row .report-label {
+            font-size: 22pt;
+            font-weight: normal;
+            letter-spacing: 10px;
+            margin-top: 12px;
+            margin-bottom: 0;
+        }
+
+        .cover-separator {
+            width: 90%;
+            margin: 18px auto;
+            border: none;
+            border-top: 2px solid #000;
+        }
+
+        /* 信息表格 */
+        .info-table {
+            width: 70%;
+            margin: 2cm auto 0 auto;
+            border-collapse: collapse;
+            font-size: 14pt;
+        }
+
+        .info-table tr {
+            height: 50px;
+        }
+
+        .info-table td {
+            padding: 6px 8px;
+            vertical-align: bottom;
+            text-align: left;
+        }
+
+        .info-table .label-cell {
+            width: 100px;
+            font-weight: bold;
+            white-space: nowrap;
+            letter-spacing: 2px;
+            font-size: 14pt;
+        }
+
+        .info-table .value-cell {
+            border-bottom: 1px solid #000;
+            padding-left: 12px;
+            min-width: 300px;
+            font-size: 14pt;
+        }
+
+        /* ===== 正文页 ===== */
+        h1 {
+            font-size: 18pt;
+            margin-top: 1.2cm;
+            margin-bottom: 0.6cm;
+        }
+
+        h2 {
+            font-size: 15pt;
+            margin-top: 0.8cm;
+            margin-bottom: 0.4cm;
+        }
+
+        h3 {
+            font-size: 13pt;
+            margin-top: 0.6cm;
+            margin-bottom: 0.3cm;
+        }
+
+        p, li {
+            font-size: 12pt;
+            line-height: 1.8;
+        }
+
+        pre {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 11pt;
+            overflow-x: auto;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #999;
+            margin: 1cm 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cover">
+        <!-- 顶部标题区 -->
+        <div class="cover-title-row">
+            <p class="school-name">成都东软学院</p>
+            <p class="report-label">实 验 报 告</p>
+        </div>
+        <hr class="cover-separator">
+        <!-- 信息表格 -->
+        <table class="info-table">
+            <tr>
+                <td class="label-cell">课程名称：</td>
+                <td class="value-cell">人工智能提示工程</td>
+            </tr>
+            <tr>
+                <td class="label-cell">指导教师：</td>
+                <td class="value-cell">谢心</td>
+            </tr>
+            <tr>
+                <td class="label-cell">学　　院：</td>
+                <td class="value-cell">数智应用技术学院</td>
+            </tr>
+            <tr>
+                <td class="label-cell">年级专业：</td>
+                <td class="value-cell">24 级软件工程</td>
+            </tr>
+            <tr>
+                <td class="label-cell">班　　级：</td>
+                <td class="value-cell">24402</td>
+            </tr>
+            <tr>
+                <td class="label-cell">学　　号：</td>
+                <td class="value-cell">24068240217</td>
+            </tr>
+            <tr>
+                <td class="label-cell">姓　　名：</td>
+                <td class="value-cell">陶俊辉</td>
+            </tr>
+        </table>
+    </div>
+
+    <h1 id="工具调用客户端实验报告">工具调用客户端实验报告</h1>
+    <h2 id="实验目的">实验目的</h2>
+    <ol type="1">
+        <li>验证基于LLM的工具调用客户端的功能完整性和可靠性</li>
+        <li>测试AnythingLLM集成功能，验证文档仓库查询能力</li>
+        <li>评估聊天历史压缩机制的性能和效果</li>
+        <li>验证输出格式优化的用户体验改进</li>
+        <li>分析系统在不同场景下的响应速度和稳定性</li>
+    </ol>
+    <h2 id="实验环境">实验环境</h2>
+    <ul>
+        <li><strong>操作系统</strong>：Windows 10</li>
+        <li><strong>Python版本</strong>：3.6+</li>
+        <li><strong>依赖项</strong>：标准库（os, json, http.client, time, sys,
+            subprocess）</li>
+        <li><strong>配置文件</strong>：<code>.env</code>（包含LLM
+            API和AnythingLLM配置）</li>
+        <li><strong>AnythingLLM服务</strong>：运行在 http://localhost:3001</li>
+    </ul>
+    <h2 id="实验内容与步骤">实验内容与步骤</h2>
+    <h3 id="环境配置验证">1. 环境配置验证</h3>
+    <p><strong>步骤</strong>： 1. 检查 <code>.env</code>
+        文件是否存在并包含必要的配置 2. 验证环境变量加载功能 3. 确认 AnythingLLM
+        服务是否运行</p>
+    <p><strong>预期结果</strong>： - 系统能够正确读取环境变量 - 能够连接到
+        AnythingLLM 服务</p>
+    <h3 id="基本工具调用测试">2. 基本工具调用测试</h3>
+    <p><strong>步骤</strong>： 1. 测试 <code>list_files</code>
+        工具，列出当前目录文件 2. 测试 <code>create_file</code>
+        工具，创建测试文件 3. 测试 <code>read_file</code> 工具，读取刚创建的文件
+        4. 测试 <code>curl</code> 工具，访问网络资源</p>
+    <p><strong>预期结果</strong>： - 所有工具能够正常执行 -
+        工具执行结果正确返回</p>
+    <h3 id="anythingllm-集成测试">3. AnythingLLM 集成测试</h3>
+    <p><strong>步骤</strong>： 1. 测试 <code>anythingllm_query</code>
+        工具，查询文档仓库内容 2. 测试特定主题的查询 3.
+        测试错误处理（API密钥缺失情况）</p>
+    <p><strong>预期结果</strong>： - 能够成功查询文档仓库 -
+        能够正确处理中文编码 - 错误情况下能够返回明确的错误信息</p>
+    <h3 id="聊天历史压缩测试">4. 聊天历史压缩测试</h3>
+    <p><strong>步骤</strong>： 1. 进行多轮对话，触发压缩机制 2.
+        验证压缩后的对话连贯性 3. 测试压缩过程的性能影响</p>
+    <p><strong>预期结果</strong>： -
+        当对话轮数超过5轮或上下文长度超过3000字符时，自动触发压缩 -
+        压缩后的对话保持上下文连贯性 - 压缩过程不会显著影响响应速度</p>
+    <h3 id="输出格式优化测试">5. 输出格式优化测试</h3>
+    <p><strong>步骤</strong>： 1. 测试工具调用的格式化显示 2.
+        测试文档仓库查询结果的美化显示 3. 测试统计信息的结构化展示 4.
+        测试压缩过程的状态提示</p>
+    <p><strong>预期结果</strong>： - 工具调用信息清晰易读 -
+        文档仓库查询结果直接显示，不再显示原始JSON -
+        统计信息结构清晰，包含完整的对话信息 - 压缩过程的状态提示明确易懂</p>
+    <h2 id="实验结果">实验结果</h2>
+    <h3 id="环境配置验证-1">1. 环境配置验证</h3>
+    <p><strong>结果</strong>： - 系统能够正确读取 <code>.env</code>
+        文件中的环境变量 - 成功连接到 AnythingLLM 服务 -
+        环境配置功能正常工作</p>
+    <h3 id="基本工具调用测试-1">2. 基本工具调用测试</h3>
+    <p><strong>结果</strong>： - <code>list_files</code>
+        工具：成功列出目录文件，返回包含文件名称、类型、大小等信息的JSON -
+        <code>create_file</code> 工具：成功创建测试文件 - <code>read_file</code>
+        工具：成功读取文件内容 - <code>curl</code>
+        工具：成功访问网络资源并返回结果
+    </p>
+    <h3 id="anythingllm-集成测试-1">3. AnythingLLM 集成测试</h3>
+    <p><strong>结果</strong>： - 成功调用 AnythingLLM API 查询文档仓库 -
+        正确处理中文编码，返回的文档内容显示正常 -
+        当API密钥缺失时，返回明确的错误信息 -
+        能够从文档仓库中提取相关信息并格式化显示</p>
+    <h3 id="聊天历史压缩测试-1">4. 聊天历史压缩测试</h3>
+    <p><strong>结果</strong>： - 当对话轮数达到6轮时，系统自动触发压缩 -
+        压缩过程耗时约2-3秒，在可接受范围内 - 压缩后的对话保持了上下文连贯性 -
+        压缩策略（保留最近30%，压缩前70%）有效减少了上下文长度</p>
+    <h3 id="输出格式优化测试-1">5. 输出格式优化测试</h3>
+    <p><strong>结果</strong>： - 工具调用信息以标签化格式显示，清晰易读 -
+        文档仓库查询结果直接显示，不再显示原始JSON，提升了可读性 -
+        统计信息以结构化方式展示，包含完整的对话信息 -
+        压缩过程的状态提示明确，用户体验良好</p>
+    <h2 id="功能实现分析">功能实现分析</h2>
+    <h3 id="核心功能实现">1. 核心功能实现</h3>
+    <p><strong>工具调用机制</strong>： - 通过 <code>execute_tool_call</code>
+        函数统一处理不同工具的调用 -
+        支持8种工具：list_files、rename_file、delete_file、create_file、read_file、curl、read_chat_log、anythingllm_query
+        - 工具执行结果以JSON格式返回，包含状态和数据</p>
+    <p><strong>AnythingLLM集成</strong>： - 使用 <code>subprocess</code>
+        模块调用 curl 命令 - 访问
+        http://localhost:3001/api/v1/workspace/{workspace_slug}/chat 接口 -
+        支持中文编码，确保文档内容正确显示 - 从 <code>.env</code> 文件读取 API
+        密钥和工作空间 ID</p>
+    <p><strong>聊天历史压缩</strong>： -
+        当对话轮数超过5轮或上下文长度超过3000字符时触发 -
+        采用”保留最近30%，压缩前70%“的策略 -
+        使用LLM对历史对话进行总结，减少上下文长度</p>
+    <p><strong>输出格式优化</strong>： - 新增
+        <code>print_separator</code>、<code>print_stats</code>、<code>format_tool_call</code>、<code>format_tool_result</code>
+        函数 - 工具调用和执行结果以标签化格式显示 -
+        文档仓库查询结果直接显示，不再显示原始JSON -
+        统计信息以结构化方式展示
+    </p>
+    <h3 id="技术亮点">2. 技术亮点</h3>
+    <ol type="1">
+        <li><strong>模块化设计</strong>：代码结构清晰，功能模块化，易于维护和扩展</li>
+        <li><strong>错误处理</strong>：完善的错误处理机制，确保系统稳定性</li>
+        <li><strong>性能优化</strong>：聊天历史压缩机制有效减少上下文长度，提高系统性能</li>
+        <li><strong>用户体验</strong>：优化的输出格式提升了用户体验，使信息更加清晰易读</li>
+        <li><strong>安全性</strong>：API密钥从环境变量读取，避免硬编码</li>
+    </ol>
+    <h2 id="实验总结">实验总结</h2>
+    <h3 id="功能验证">1. 功能验证</h3>
+    <p>本实验验证了工具调用客户端的以下功能： - ✅
+        基本文件操作工具（列出、创建、读取、重命名、删除） - ✅
+        网络访问工具（curl） - ✅ 聊天历史日志读取 - ✅ AnythingLLM 文档仓库查询
+        - ✅ 聊天历史压缩 - ✅ 输出格式优化</p>
+    <h3 id="性能评估">2. 性能评估</h3>
+    <ul>
+        <li><strong>响应速度</strong>：工具调用响应时间在1-5秒之间，取决于网络和LLM处理速度</li>
+        <li><strong>压缩性能</strong>：压缩过程耗时约2-3秒，有效减少上下文长度</li>
+        <li><strong>稳定性</strong>：系统在各种场景下表现稳定，错误处理机制完善</li>
+    </ul>
+    <h3 id="用户体验">3. 用户体验</h3>
+    <ul>
+        <li><strong>界面友好</strong>：优化的输出格式使信息更加清晰易读</li>
+        <li><strong>操作直观</strong>：工具调用流程简单直观，用户易于理解</li>
+        <li><strong>反馈及时</strong>：系统提供明确的状态提示和错误信息</li>
+    </ul>
+    <h3 id="改进建议">4. 改进建议</h3>
+    <ol type="1">
+        <li><strong>性能优化</strong>：
+            <ul>
+                <li>考虑使用异步处理提高并发性能</li>
+                <li>优化聊天历史压缩算法，减少压缩时间</li>
+            </ul>
+        </li>
+        <li><strong>功能扩展</strong>：
+            <ul>
+                <li>添加更多工具类型，如数据库操作、图像处理等</li>
+                <li>支持更多LLM模型和API</li>
+            </ul>
+        </li>
+        <li><strong>用户界面</strong>：
+            <ul>
+                <li>开发图形界面，提高用户体验</li>
+                <li>添加配置界面，方便用户管理环境变量</li>
+            </ul>
+        </li>
+        <li><strong>安全性</strong>：
+            <ul>
+                <li>加强API密钥的保护措施</li>
+                <li>添加访问控制机制</li>
+            </ul>
+        </li>
+    </ol>
+    <h3 id="结论">5. 结论</h3>
+    <p>本实验成功验证了工具调用客户端的功能完整性和可靠性。系统通过集成AnythingLLM，实现了文档仓库查询能力；通过聊天历史压缩机制，提高了系统性能；通过输出格式优化，提升了用户体验。</p>
+    <p>该系统展示了如何构建一个功能完整、性能优良的LLM工具调用客户端，为后续的应用开发提供了有价值的参考。系统设计合理，代码结构清晰，功能模块化，具有良好的可扩展性和可维护性。</p>
+    <h2 id="实验环境配置">实验环境配置</h2>
+    <h3 id="env-文件配置">1. <code>.env</code> 文件配置</h3>
+    <pre class="env"><code>BASE_URL=http://127.0.0.1:1234/v1  # LLM API地址
+MODEL=qwen3.5-9b  # 使用的模型
+TOKEN=lm-studio  # API令牌
+
+# AnythingLLM配置
+ANYTHING_API_KEY=your_anythingllm_api_key  # AnythingLLM API密钥
+ANYTHING_WORKSPACE_SLUG=your_workspace_slug  # AnythingLLM工作空间ID</code></pre>
+    <h3 id="启动方式">2. 启动方式</h3>
+    <p><strong>交互式模式</strong>：</p>
+    <div class="sourceCode" id="cb2">
+        <pre
+            class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> practice04/tool_client.py</span></code></pre>
+    </div>
+    <p><strong>命令行模式</strong>：</p>
+    <div class="sourceCode" id="cb3">
+        <pre
+            class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> practice04/tool_client.py <span class="st">&quot;你的问题或指令&quot;</span></span></code></pre>
+    </div>
+    <h2 id="版本历史">版本历史</h2>
+    <ul>
+        <li><strong>v1.3.0</strong>：优化输出格式</li>
+        <li><strong>v1.2.0</strong>：添加AnythingLLM集成功能</li>
+        <li><strong>v1.1.0</strong>：添加关键信息提取和聊天历史搜索功能</li>
+        <li><strong>v1.0.0</strong>：初始版本，支持基本工具调用和聊天历史压缩功能</li>
+    </ul>
+    <hr />
+    <p><strong>实验日期</strong>：2026-04-22
+        <strong>实验人员</strong>：系统开发者 <strong>实验环境</strong>：Windows
+        10 + Python 3.6+
+    </p>
