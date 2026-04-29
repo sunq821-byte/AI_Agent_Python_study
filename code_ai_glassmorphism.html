@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 智能体开发实战</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-dark: #0a0a1a;
+    --bg-mid: #12122a;
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-highlight: rgba(255, 255, 255, 0.12);
+    --text-primary: #f0f0ff;
+    --text-secondary: rgba(240, 240, 255, 0.6);
+    --text-muted: rgba(240, 240, 255, 0.35);
+    --accent-cyan: #00f0ff;
+    --accent-purple: #a855f7;
+    --accent-pink: #ec4899;
+    --accent-blue: #3b82f6;
+    --accent-green: #22d3ee;
+    --glow-cyan: 0 0 40px rgba(0, 240, 255, 0.3);
+    --glow-purple: 0 0 40px rgba(168, 85, 247, 0.3);
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── Presentation Container ── */
+  .deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 4rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+
+  .slide.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  /* ── Background Orbs ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, var(--accent-purple), transparent 70%);
+    top: -150px; left: -100px;
+  }
+
+  .orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, var(--accent-cyan), transparent 70%);
+    bottom: -100px; right: -80px;
+  }
+
+  .orb-3 {
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, var(--accent-pink), transparent 70%);
+    top: 40%; right: 10%;
+    opacity: 0.2;
+  }
+
+  .slide > * { position: relative; z-index: 1; }
+
+  /* ── Glass Card ── */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+  }
+
+  .glass-highlight {
+    background: var(--glass-highlight);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+  }
+
+  /* ── Typography ── */
+  h1 {
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-alt {
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .text-muted { color: var(--text-secondary); }
+  .text-faint { color: var(--text-muted); }
+
+  /* ── Neon Glow Utils ── */
+  .glow-cyan { text-shadow: 0 0 20px rgba(0, 240, 255, 0.5); }
+  .glow-purple { text-shadow: 0 0 20px rgba(168, 85, 247, 0.5); }
+
+  .neon-border {
+    border: 1px solid var(--accent-cyan);
+    box-shadow: var(--glow-cyan), inset 0 0 20px rgba(0, 240, 255, 0.05);
+  }
+
+  .neon-border-purple {
+    border: 1px solid var(--accent-purple);
+    box-shadow: var(--glow-purple), inset 0 0 20px rgba(168, 85, 247, 0.05);
+  }
+
+  /* ── Code Block ── */
+  .code-block {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    color: var(--text-secondary);
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--accent-purple); }
+  .code-block .fn { color: var(--accent-cyan); }
+  .code-block .str { color: var(--accent-green); }
+  .code-block .cmt { color: var(--text-muted); font-style: italic; }
+  .code-block .var { color: var(--accent-pink); }
+
+  /* ── Grid & Flex ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+  .flex-col { display: flex; flex-direction: column; }
+  .flex-row { display: flex; flex-direction: row; align-items: center; }
+  .items-center { align-items: center; }
+  .gap-1 { gap: 0.5rem; }
+  .gap-2 { gap: 1rem; }
+  .gap-3 { gap: 1.5rem; }
+
+  /* ── Slide-specific ── */
+
+  /* Slide 1: Cover */
+  .slide-cover h1 { font-size: 4.5rem; margin-bottom: 1rem; }
+  .slide-cover .subtitle {
+    font-size: 1.3rem;
+    color: var(--text-secondary);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    margin: 0.25rem;
+  }
+
+  /* Slide 2: Impact */
+  .big-number {
+    font-size: 8rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .arrow-flow {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .arrow-flow .arrow {
+    color: var(--accent-cyan);
+    font-size: 1.5rem;
+  }
+
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 12px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  /* Slide 3: Feature Cards */
+  .feature-card {
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .feature-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto 0.8rem;
+  }
+
+  .feature-card h3 { margin-bottom: 0.4rem; font-size: 1.1rem; }
+  .feature-card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+
+  /* Practice Slides */
+  .practice-layout {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1100px;
+    align-items: center;
+  }
+
+  .practice-info h2 { margin-bottom: 1rem; }
+
+  .practice-info .desc {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .info-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .info-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .info-list li .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    margin-top: 0.55rem;
+    flex-shrink: 0;
+  }
+
+  .practice-code {
+    width: 100%;
+  }
+
+  /* Slide 6: Compare */
+  .compare-box {
+    padding: 1.2rem 1.5rem;
+    border-radius: 14px;
+    flex: 1;
+  }
+
+  .compare-box .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+  }
+
+  .compare-box .body-text {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  /* Slide 7: Architecture */
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 2rem;
+  }
+
+  .arch-node {
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .arch-arrow {
+    color: var(--accent-cyan);
+    font-size: 1.2rem;
+  }
+
+  /* Slide 8-9: Skill System */
+  .flow-chain {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 1.5rem;
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+
+  .flow-step {
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .flow-arrow {
+    color: var(--accent-cyan);
+    font-size: 1rem;
+    padding: 0 0.3rem;
+  }
+
+  /* Slide 10: Tech Stack */
+  .tech-card {
+    padding: 1.2rem;
+    text-align: center;
+    border-radius: 16px;
+    transition: transform 0.3s;
+  }
+
+  .tech-card:hover { transform: scale(1.03); }
+
+  .tech-card .tech-icon {
+    font-size: 2rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .tech-card .tech-name {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .tech-card .tech-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* Slide 11: Big Statement */
+  .stat-number {
+    font-size: 7rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  /* Slide 12: Ending */
+  .slide-end h1 { font-size: 3.5rem; margin-bottom: 1.5rem; }
+  .slide-end .cta {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 300;
+    margin-bottom: 2.5rem;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 0.9rem 2.5rem;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .cta-primary {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    color: #fff;
+    border: none;
+  }
+
+  .cta-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+  }
+
+  /* ── Navigation ── */
+  .nav-controls {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 100;
+  }
+
+  .nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+
+  .nav-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .nav-dots {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .nav-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .nav-dot.active {
+    background: var(--accent-cyan);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  .slide-counter {
+    position: fixed;
+    top: 1.5rem;
+    right: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    z-index: 100;
+  }
+
+  /* ── Table ── */
+  .g-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+  }
+
+  .g-table th {
+    padding: 0.7rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--accent-cyan);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .g-table td {
+    padding: 0.6rem 1rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+
+  .g-table tr:last-child td { border-bottom: none; }
+
+  /* ── Animations ── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+  }
+
+  .orb { animation: pulse-glow 8s ease-in-out infinite; }
+  .orb-2 { animation-delay: 3s; }
+  .orb-3 { animation-delay: 5s; }
+
+  .float { animation: float 6s ease-in-out infinite; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide.active .anim-1 { animation: fadeInUp 0.5s 0.1s both; }
+  .slide.active .anim-2 { animation: fadeInUp 0.5s 0.2s both; }
+  .slide.active .anim-3 { animation: fadeInUp 0.5s 0.3s both; }
+  .slide.active .anim-4 { animation: fadeInUp 0.5s 0.4s both; }
+  .slide.active .anim-5 { animation: fadeInUp 0.5s 0.5s both; }
+  .slide.active .anim-6 { animation: fadeInUp 0.5s 0.6s both; }
+</style>
+</head>
+<body>
+
+<!-- Background Orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="deck">
+
+  <!-- ═══════════════ SLIDE 1: Cover ═══════════════ -->
+  <div class="slide slide-cover active" data-slide="1">
+    <div style="text-align:center;">
+      <div class="anim-1" style="margin-bottom:1.5rem;">
+        <span class="tag mono">Python &middot; 纯标准库 &middot; 零依赖</span>
+      </div>
+      <h1 class="anim-2 gradient-text">AI 智能体开发实战</h1>
+      <p class="anim-3 subtitle" style="margin-top:1rem;">从基础对话到技能系统 &mdash; 五个练习的进阶之路</p>
+      <div class="anim-4" style="margin-top:2.5rem; display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap;">
+        <span class="tag" style="border-color:var(--accent-cyan); color:var(--accent-cyan);">流式输出</span>
+        <span class="tag" style="border-color:var(--accent-purple); color:var(--accent-purple);">工具调用</span>
+        <span class="tag" style="border-color:var(--accent-pink); color:var(--accent-pink);">技能加载</span>
+        <span class="tag" style="border-color:var(--accent-blue); color:var(--accent-blue);">知识库</span>
+      </div>
+      <div class="anim-5 text-faint mono" style="margin-top:3rem; font-size:0.8rem;">
+        软件工程24402 &nbsp;|&nbsp; 陶俊辉
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 2: Impact ═══════════════ -->
+  <div class="slide" data-slide="2">
+    <div style="text-align:center; max-width:900px;">
+      <div class="anim-1 big-number gradient-text">5</div>
+      <h2 class="anim-2" style="margin-top:0.5rem;">个练习，一条进阶路</h2>
+      <p class="anim-3 text-muted" style="margin-top:1rem; font-size:1.05rem;">每个练习在前一个基础上递进，从简单对话到自主决策</p>
+
+      <div class="anim-4 arrow-flow" style="justify-content:center; margin-top:3rem; flex-wrap:wrap; gap:0.5rem;">
+        <span class="step-badge glass" style="background:rgba(0,240,255,0.1); border:1px solid rgba(0,240,255,0.3);">P01</span>
+        <span class="arrow">&rarr;</span>
+        <span class="step-badge glass" style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3);">P02</span>
+        <span class="arrow">&rarr;</span>
+        <span class="step-badge glass" style="background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.3);">P03</span>
+        <span class="arrow">&rarr;</span>
+        <span class="step-badge glass" style="background:rgba(236,72,153,0.1); border:1px solid rgba(236,72,153,0.3);">P04</span>
+        <span class="arrow">&rarr;</span>
+        <span class="step-badge glass" style="background:rgba(34,211,238,0.1); border:1px solid rgba(34,211,238,0.3);">P05</span>
+      </div>
+
+      <div class="anim-5 grid-5" style="margin-top:2rem; text-align:center;">
+        <div><div style="font-size:0.75rem; color:var(--accent-cyan); font-weight:600;">基础对话</div></div>
+        <div><div style="font-size:0.75rem; color:var(--accent-blue); font-weight:600;">工具调用</div></div>
+        <div><div style="font-size:0.75rem; color:var(--accent-purple); font-weight:600;">对话压缩</div></div>
+        <div><div style="font-size:0.75rem; color:var(--accent-pink); font-weight:600;">知识库集成</div></div>
+        <div><div style="font-size:0.75rem; color:var(--accent-green); font-weight:600;">技能系统</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 3: Feature Cards ═══════════════ -->
+  <div class="slide" data-slide="3">
+    <div style="text-align:center; width:100%; max-width:1100px;">
+      <h2 class="anim-1" style="margin-bottom:2.5rem;">项目亮点</h2>
+      <div class="anim-2 grid-3" style="gap:1.5rem;">
+        <div class="glass feature-card neon-border">
+          <div class="feature-icon" style="background:rgba(0,240,255,0.15);">&#9889;</div>
+          <h3>零依赖</h3>
+          <p>纯 Python 标准库实现<br>无需安装任何第三方包</p>
+        </div>
+        <div class="glass feature-card neon-border-purple">
+          <div class="feature-icon" style="background:rgba(168,85,247,0.15);">&#127912;</div>
+          <h3>SSE 流式输出</h3>
+          <p>逐字实时显示 LLM 响应<br>减少等待焦虑</p>
+        </div>
+        <div class="glass feature-card" style="border:1px solid var(--accent-pink); box-shadow:0 0 40px rgba(236,72,153,0.2);">
+          <div class="feature-icon" style="background:rgba(236,72,153,0.15);">&#128640;</div>
+          <h3>递进式学习</h3>
+          <p>5 个练习逐步进阶<br>每次只增加一个维度</p>
+        </div>
+        <div class="glass feature-card" style="border:1px solid var(--accent-blue); box-shadow:0 0 40px rgba(59,130,246,0.2);">
+          <div class="feature-icon" style="background:rgba(59,130,246,0.15);">&#128295;</div>
+          <h3>工具调用</h3>
+          <p>LLM 自主调用本地工具<br>文件操作 + 网络访问</p>
+        </div>
+        <div class="glass feature-card" style="border:1px solid var(--accent-green); box-shadow:0 0 40px rgba(34,211,238,0.2);">
+          <div class="feature-icon" style="background:rgba(34,211,238,0.15);">&#129504;</div>
+          <h3>技能动态加载</h3>
+          <p>YAML 技能文件<br>LLM 自动识别并执行</p>
+        </div>
+        <div class="glass feature-card" style="border:1px solid rgba(255,255,255,0.2);">
+          <div class="feature-icon" style="background:rgba(255,255,255,0.08);">&#128200;</div>
+          <h3>性能监控</h3>
+          <p>Token 消耗 / 响应时间<br>实时处理速度统计</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 4: P01 ═══════════════ -->
+  <div class="slide" data-slide="4">
+    <div class="practice-layout">
+      <div class="practice-info">
+        <div class="anim-1 flex-row gap-2 items-center" style="margin-bottom:0.8rem;">
+          <span class="step-badge" style="background:rgba(0,240,255,0.15); border:1px solid rgba(0,240,255,0.4); color:var(--accent-cyan); width:2.5rem; height:2.5rem; font-size:1rem;">01</span>
+          <h2 style="font-size:1.8rem;">基础对话</h2>
+        </div>
+        <p class="anim-2 desc">使用 Python 标准库 http.client 与 LLM 直接对话，实现流式输出和多轮上下文管理。</p>
+        <ul class="anim-3 info-list">
+          <li><span class="dot"></span>SSE 流式协议，逐字显示响应</li>
+          <li><span class="dot" style="background:var(--accent-purple);"></span>自动维护对话历史，上下文连贯</li>
+          <li><span class="dot" style="background:var(--accent-pink);"></span>Token 消耗与响应速度实时统计</li>
+          <li><span class="dot" style="background:var(--accent-blue);"></span>支持 Ctrl+C 优雅退出</li>
+        </ul>
+      </div>
+      <div class="practice-code anim-4">
+        <div class="code-block">
+<span class="kw">def</span> <span class="fn">call_llm_stream</span>(messages, env_vars):
+    <span class="cmt"># 构建 HTTP 请求，启用流式输出</span>
+    conn = http.client.HTTPConnection(host, port)
+    conn.request(<span class="str">"POST"</span>, path, body, headers)
+
+    <span class="cmt"># 逐行读取 SSE 数据流</span>
+    <span class="kw">while</span> line := response.readline():
+        <span class="kw">if</span> line.startswith(<span class="str">"data: "</span>):
+            data = json.loads(line[<span class="var">6</span>:])
+            delta = data[<span class="str">"choices"</span>][<span class="var">0</span>][<span class="str">"delta"</span>]
+            <span class="fn">print</span>(delta.get(<span class="str">"content"</span>, <span class="str">""</span>), end=<span class="str">""</span>)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 5: P02 ═══════════════ -->
+  <div class="slide" data-slide="5">
+    <div class="practice-layout">
+      <div class="practice-info">
+        <div class="anim-1 flex-row gap-2 items-center" style="margin-bottom:0.8rem;">
+          <span class="step-badge" style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); color:var(--accent-blue); width:2.5rem; height:2.5rem; font-size:1rem;">02</span>
+          <h2 style="font-size:1.8rem;">工具调用</h2>
+        </div>
+        <p class="anim-2 desc">让 LLM 自主调用本地工具函数，通过 JSON 格式传递指令，实现文件操作和网络访问。</p>
+        <div class="anim-3 grid-2" style="gap:0.8rem; margin-top:0.5rem;">
+          <div class="glass" style="padding:0.8rem 1rem; border-radius:10px;">
+            <div style="font-size:0.75rem; color:var(--accent-cyan); font-weight:600; margin-bottom:0.3rem;">文件操作</div>
+            <div style="font-size:0.85rem; color:var(--text-secondary);">list / read / create / rename / delete</div>
+          </div>
+          <div class="glass" style="padding:0.8rem 1rem; border-radius:10px;">
+            <div style="font-size:0.75rem; color:var(--accent-purple); font-weight:600; margin-bottom:0.3rem;">网络访问</div>
+            <div style="font-size:0.85rem; color:var(--text-secondary);">curl — 发送请求并返回内容</div>
+          </div>
+        </div>
+        <ul class="anim-4 info-list" style="margin-top:0.8rem;">
+          <li><span class="dot" style="background:var(--accent-blue);"></span>LLM 返回 JSON 格式的工具调用请求</li>
+          <li><span class="dot" style="background:var(--accent-cyan);"></span>客户端解析并执行，将结果回传</li>
+        </ul>
+      </div>
+      <div class="practice-code anim-5">
+        <div class="code-block">
+<span class="cmt"># LLM 输出的工具调用</span>
+{
+  <span class="str">"tool_call"</span>: {
+    <span class="str">"name"</span>: <span class="str">"list_files"</span>,
+    <span class="str">"args"</span>: {
+      <span class="str">"directory"</span>: <span class="str">"."</span>
+    }
+  }
+}
+
+<span class="cmt"># 执行结果</span>
+{<span class="str">"status"</span>: <span class="str">"success"</span>, <span class="str">"data"</span>: [
+  {<span class="str">"name"</span>: <span class="str">"README.md"</span>, <span class="str">"size"</span>: <span class="var">3000</span>}
+]}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 6: P03 ═══════════════ -->
+  <div class="slide" data-slide="6">
+    <div style="text-align:center; max-width:1000px; width:100%;">
+      <div class="anim-1 flex-row gap-2 items-center" style="justify-content:center; margin-bottom:1rem;">
+        <span class="step-badge" style="background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.4); color:var(--accent-purple); width:2.5rem; height:2.5rem; font-size:1rem;">03</span>
+        <h2 style="font-size:1.8rem;">对话压缩</h2>
+      </div>
+      <p class="anim-2 text-muted" style="margin-bottom:2rem;">对话轮数超过阈值时，自动压缩历史上下文，提取关键信息</p>
+
+      <div class="anim-3 grid-2" style="gap:1.5rem; margin-bottom:2rem;">
+        <div class="compare-box glass" style="border-left:3px solid var(--accent-pink);">
+          <div class="label" style="color:var(--accent-pink);">压缩前</div>
+          <div class="body-text">
+            完整保留 5 轮原始对话<br>
+            上下文长度：3,000+ 字符<br>
+            信息密度：低，大量冗余
+          </div>
+        </div>
+        <div class="compare-box glass neon-border">
+          <div class="label" style="color:var(--accent-cyan);">压缩后</div>
+          <div class="body-text">
+            前 70% 对话被 LLM 总结<br>
+            保留最近 30% 原文<br>
+            上下文精简，关键信息不丢失
+          </div>
+        </div>
+      </div>
+
+      <div class="anim-4 glass" style="padding:1.2rem 1.5rem; border-radius:14px; text-align:left;">
+        <div style="font-size:0.8rem; color:var(--accent-purple); font-weight:600; margin-bottom:0.5rem;">压缩策略</div>
+        <div class="grid-3" style="gap:1rem; font-size:0.85rem; color:var(--text-secondary);">
+          <div><strong style="color:var(--text-primary);">触发条件</strong><br>超过 5 轮 或 3000 字符</div>
+          <div><strong style="color:var(--text-primary);">压缩方式</strong><br>LLM 智能总结前 70%</div>
+          <div><strong style="color:var(--text-primary);">关键提取</strong><br>5W 规则记录到日志</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 7: P04 ═══════════════ -->
+  <div class="slide" data-slide="7">
+    <div style="text-align:center; max-width:1000px; width:100%;">
+      <div class="anim-1 flex-row gap-2 items-center" style="justify-content:center; margin-bottom:1rem;">
+        <span class="step-badge" style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.4); color:var(--accent-pink); width:2.5rem; height:2.5rem; font-size:1rem;">04</span>
+        <h2 style="font-size:1.8rem;">知识库集成</h2>
+      </div>
+      <p class="anim-2 text-muted" style="margin-bottom:2rem;">接入 AnythingLLM 本地知识库，实现文档仓库的智能查询</p>
+
+      <div class="anim-3" style="display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-bottom:2rem;">
+        <div class="glass" style="padding:1.2rem 1.8rem; border-radius:14px; text-align:center; min-width:160px;">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">&#128218;</div>
+          <div style="font-weight:600; font-size:0.95rem;">文档上传</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.3rem;">PDF / TXT / MD</div>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--accent-cyan); font-size:1.5rem;">&rarr;</div>
+        <div class="glass" style="padding:1.2rem 1.8rem; border-radius:14px; text-align:center; min-width:160px;">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">&#129504;</div>
+          <div style="font-weight:600; font-size:0.95rem;">向量嵌入</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.3rem;">AnythingLLM</div>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--accent-cyan); font-size:1.5rem;">&rarr;</div>
+        <div class="glass" style="padding:1.2rem 1.8rem; border-radius:14px; text-align:center; min-width:160px;">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">&#128269;</div>
+          <div style="font-weight:600; font-size:0.95rem;">智能检索</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.3rem;">语义匹配</div>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--accent-cyan); font-size:1.5rem;">&rarr;</div>
+        <div class="glass neon-border" style="padding:1.2rem 1.8rem; border-radius:14px; text-align:center; min-width:160px;">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">&#128172;</div>
+          <div style="font-weight:600; font-size:0.95rem;">精准回答</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.3rem;">基于知识库</div>
+        </div>
+      </div>
+
+      <div class="anim-4 glass" style="padding:1rem 1.5rem; border-radius:12px;">
+        <div class="code-block" style="background:transparent; border:none; padding:0;">
+<span class="cmt"># 用户提问 → 检索知识库 → 返回精准答案</span>
+<span class="str">"What is the refund policy?"</span>  →  <span class="var">[检索相关文档片段]</span>  →  <span class="str">"退款政策为购买后 7 天内..."</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 8: P05 v1 ═══════════════ -->
+  <div class="slide" data-slide="8">
+    <div class="practice-layout">
+      <div class="practice-info">
+        <div class="anim-1 flex-row gap-2 items-center" style="margin-bottom:0.8rem;">
+          <span class="step-badge" style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.4); color:var(--accent-green); width:2.5rem; height:2.5rem; font-size:1rem;">05</span>
+          <span class="tag" style="border-color:var(--accent-green); color:var(--accent-green); font-size:0.7rem;">v1</span>
+          <h2 style="font-size:1.8rem;">技能动态加载</h2>
+        </div>
+        <p class="anim-2 desc">LLM 自动识别用户意图，按需加载 SKILL.md 技能规则，并严格遵照执行。</p>
+        <ul class="anim-3 info-list">
+          <li><span class="dot" style="background:var(--accent-green);"></span>启动时扫描 .agents/skills/ 目录</li>
+          <li><span class="dot" style="background:var(--accent-cyan);"></span>解析 SKILL.md 的 YAML front matter</li>
+          <li><span class="dot" style="background:var(--accent-purple);"></span>技能列表 JSON 注入 system prompt</li>
+          <li><span class="dot" style="background:var(--accent-pink);"></span>LLM 判断需要时调用 load_skill_content</li>
+        </ul>
+        <div class="anim-4 flow-chain" style="justify-content:flex-start;">
+          <div class="flow-step glass" style="border:1px solid rgba(34,211,238,0.3); font-size:0.8rem;">扫描目录</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-step glass" style="border:1px solid rgba(59,130,246,0.3); font-size:0.8rem;">解析 YAML</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-step glass" style="border:1px solid rgba(168,85,247,0.3); font-size:0.8rem;">注入 Prompt</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-step glass neon-border" style="font-size:0.8rem;">按需加载</div>
+        </div>
+      </div>
+      <div class="practice-code anim-5">
+        <div class="code-block">
+<span class="cmt"># SKILL.md 结构</span>
+---
+<span class="var">name</span>: notice
+<span class="var">description</span>: 撰写、修改、润色通知
+---
+
+<span class="cmt"># LLM 判断需要 notice 技能</span>
+{<span class="str">"tool_call"</span>: {
+  <span class="str">"name"</span>: <span class="str">"load_skill_content"</span>,
+  <span class="str">"args"</span>: {<span class="str">"skill_name"</span>: <span class="str">"notice"</span>}
+}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 9: P05 v2 ═══════════════ -->
+  <div class="slide" data-slide="9">
+    <div style="text-align:center; max-width:1000px; width:100%;">
+      <div class="anim-1 flex-row gap-2 items-center" style="justify-content:center; margin-bottom:0.8rem;">
+        <span class="step-badge" style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.4); color:var(--accent-green); width:2.5rem; height:2.5rem; font-size:1rem;">05</span>
+        <span class="tag" style="border-color:var(--accent-cyan); color:var(--accent-cyan); font-size:0.7rem;">v2</span>
+        <h2 style="font-size:1.8rem;">技能系统 + Markdown 导出</h2>
+      </div>
+      <p class="anim-2 text-muted" style="margin-bottom:2rem;">在 v1 基础上新增 save_as_markdown 工具，LLM 生成内容后自动保存为文件</p>
+
+      <div class="anim-3 flow-chain" style="margin-bottom:2.5rem; gap:0.4rem;">
+        <div class="flow-step glass" style="border:1px solid rgba(34,211,238,0.3);">&#128100; 用户请求</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step glass" style="border:1px solid rgba(168,85,247,0.3);">&#129504; load_skill_content</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step glass" style="border:1px solid rgba(59,130,246,0.3);">&#9997;&#65039; 生成通知</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step glass neon-border">&#128190; save_as_markdown</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step glass" style="border:1px solid rgba(236,72,153,0.3);">&#9989; 展示结果</div>
+      </div>
+
+      <div class="anim-4 glass" style="padding:1.5rem; border-radius:16px; text-align:left;">
+        <div style="font-size:0.8rem; color:var(--accent-cyan); font-weight:600; margin-bottom:0.8rem;">相比 v1 新增</div>
+        <table class="g-table">
+          <tr>
+            <th>新增项</th>
+            <th>说明</th>
+          </tr>
+          <tr>
+            <td><code class="mono" style="color:var(--accent-green); font-size:0.8rem;">save_as_markdown()</code></td>
+            <td>将内容保存为 .md 文件，自动生成时间戳文件名</td>
+          </tr>
+          <tr>
+            <td><code class="mono" style="color:var(--accent-cyan); font-size:0.8rem;">notices/</code> 目录</td>
+            <td>所有输出文件统一存放在项目根目录下</td>
+          </tr>
+          <tr>
+            <td>完整调用链</td>
+            <td>load_skill &rarr; 生成 &rarr; 保存 &rarr; 展示（最多 6 轮）</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 10: Tech Stack ═══════════════ -->
+  <div class="slide" data-slide="10">
+    <div style="text-align:center; max-width:1000px; width:100%;">
+      <h2 class="anim-1" style="margin-bottom:2rem;">技术栈一览</h2>
+
+      <div class="anim-2 grid-4" style="margin-bottom:2rem;">
+        <div class="glass tech-card" style="border:1px solid rgba(0,240,255,0.15);">
+          <div class="tech-icon">&#128051;</div>
+          <div class="tech-name gradient-text">http.client</div>
+          <div class="tech-desc">HTTP 请求</div>
+        </div>
+        <div class="glass tech-card" style="border:1px solid rgba(168,85,247,0.15);">
+          <div class="tech-icon">&#128203;</div>
+          <div class="tech-name" style="color:var(--accent-purple);">json</div>
+          <div class="tech-desc">数据解析</div>
+        </div>
+        <div class="glass tech-card" style="border:1px solid rgba(236,72,153,0.15);">
+          <div class="tech-icon">&#128190;</div>
+          <div class="tech-name" style="color:var(--accent-pink);">os</div>
+          <div class="tech-desc">文件操作</div>
+        </div>
+        <div class="glass tech-card" style="border:1px solid rgba(59,130,246,0.15);">
+          <div class="tech-icon">&#9201;</div>
+          <div class="tech-name" style="color:var(--accent-blue);">time</div>
+          <div class="tech-desc">性能统计</div>
+        </div>
+      </div>
+
+      <div class="anim-3 glass" style="padding:1.5rem; border-radius:16px;">
+        <div class="grid-3" style="gap:2rem; text-align:center;">
+          <div>
+            <div style="font-size:2.5rem; font-weight:900;" class="gradient-text">Python 3.11+</div>
+            <div class="text-muted" style="font-size:0.85rem; margin-top:0.3rem;">运行环境</div>
+          </div>
+          <div>
+            <div style="font-size:2.5rem; font-weight:900;" class="gradient-text-alt">.env</div>
+            <div class="text-muted" style="font-size:0.85rem; margin-top:0.3rem;">配置管理</div>
+          </div>
+          <div>
+            <div style="font-size:2.5rem; font-weight:900;" style="background:linear-gradient(135deg,var(--accent-pink),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">SSE</div>
+            <div class="text-muted" style="font-size:0.85rem; margin-top:0.3rem;">流式协议</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 11: Big Statement ═══════════════ -->
+  <div class="slide" data-slide="11">
+    <div style="text-align:center;">
+      <div class="anim-1 stat-number gradient-text">0</div>
+      <div class="anim-2 stat-label" style="margin-top:0.5rem;">个第三方依赖</div>
+      <div class="anim-3" style="width:60px; height:2px; background:var(--accent-cyan); margin:2rem auto; border-radius:1px; box-shadow:var(--glow-cyan);"></div>
+      <p class="anim-4" style="font-size:1.3rem; color:var(--text-secondary); font-weight:300; max-width:600px; line-height:1.8;">
+        用最基础的 Python 标准库<br>构建完整的 AI 智能体系统
+      </p>
+      <div class="anim-5 grid-4" style="max-width:700px; margin-top:2.5rem; gap:1.5rem;">
+        <div style="text-align:center;">
+          <div style="font-size:2rem; font-weight:900; color:var(--accent-cyan);">5</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">练习</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:2rem; font-weight:900; color:var(--accent-purple);">6+</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">工具函数</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:2rem; font-weight:900; color:var(--accent-pink);">SSE</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">流式输出</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:2rem; font-weight:900; color:var(--accent-blue);">YAML</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">技能解析</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 12: Ending ═══════════════ -->
+  <div class="slide slide-end" data-slide="12">
+    <div style="text-align:center;">
+      <h1 class="anim-1 gradient-text">从对话到自主决策</h1>
+      <p class="anim-2 cta">五个练习，完成 AI 智能体的完整进化链路</p>
+      <div class="anim-3" style="display:flex; gap:1rem; justify-content:center;">
+        <a class="cta-button cta-primary" href="#" onclick="event.preventDefault();">查看源码</a>
+        <a class="cta-button glass" href="#" onclick="event.preventDefault();" style="border:1px solid var(--glass-border); color:var(--text-secondary);">了解更多</a>
+      </div>
+      <div class="anim-4 text-faint mono" style="margin-top:3rem; font-size:0.8rem;">
+        软件工程24402 &nbsp;|&nbsp; 陶俊辉 &nbsp;|&nbsp; 2026
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="slide-counter"><span id="current">1</span> / <span id="total">12</span></div>
+<div class="nav-controls">
+  <button class="nav-btn" onclick="prevSlide()">&#9664;</button>
+  <div class="nav-dots" id="nav-dots"></div>
+  <button class="nav-btn" onclick="nextSlide()">&#9654;</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+
+  document.getElementById('total').textContent = totalSlides;
+
+  // Build nav dots
+  const dotsContainer = document.getElementById('nav-dots');
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goToSlide(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function goToSlide(n) {
+    slides[currentSlide].classList.remove('active');
+    dotsContainer.children[currentSlide].classList.remove('active');
+    currentSlide = ((n % totalSlides) + totalSlides) % totalSlides;
+    slides[currentSlide].classList.add('active');
+    dotsContainer.children[currentSlide].classList.add('active');
+    document.getElementById('current').textContent = currentSlide + 1;
+  }
+
+  function nextSlide() { goToSlide(currentSlide + 1); }
+  function prevSlide() { goToSlide(currentSlide - 1); }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+    if (e.key === 'Home') { e.preventDefault(); goToSlide(0); }
+    if (e.key === 'End') { e.preventDefault(); goToSlide(totalSlides - 1); }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) nextSlide();
+      else prevSlide();
+    }
+  });
+</script>
+</body>
+</html>
