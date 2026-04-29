@@ -434,6 +434,87 @@ def save_as_markdown(content, filename=None):
   → [轮4] 向用户展示通知并告知保存路径
 ```
 
+### practice06：链式工具调用（Chained Tool Calls）
+
+在 practice05 基础上实现**链式工具调用**：前一个工具的输出作为后一个工具的输入，LLM 根据中间结果自主决定完整调用链。
+
+```bash
+# 运行全部测试
+python practice06/chained_tool_client.py test
+
+# 运行单个测试
+python practice06/chained_tool_client.py test1   # 文件搜索链
+python practice06/chained_tool_client.py test2   # 技能查询链
+python practice06/chained_tool_client.py test3   # 网页处理链
+
+# 自定义请求
+python practice06/chained_tool_client.py "查找 practice05 目录下所有 .py 文件并统计行数"
+
+# 交互式模式
+python practice06/chained_tool_client.py
+```
+
+**核心设计**：
+
+| 组件 | 功能 |
+|---|---|
+| `ChainedCallContext` | 上下文管理器：记录步骤历史、存储中间变量、防止无限循环 |
+| `build_analysis_prompt()` | 构建分析提示词：包含用户请求、已执行历史、工具说明、输出格式规范 |
+| `parse_chained_response()` | 解析 LLM 决策 JSON，支持 markdown 代码块、tool_calls 格式 |
+| `execute_chained_tool_call()` | 链式调用主引擎：初始化 → 循环决策 → 执行 → 记录 → 终止 |
+
+**无状态调用架构**：
+
+每轮调用 LLM 时，消息结构始终为 `[system, user]`，不会出现连续多个同角色消息导致模板解析失败。历史上下文（已执行的工具名、参数、结果）全部通过 `ChainedCallContext.steps` 嵌入到 `analysis_prompt` 中传递，而非追加到 `messages` 列表。
+
+```
+messages = [{"role": "system", "content": system_prompt}]  # 固定不变
+
+每轮循环：
+  analysis_prompt = build_analysis_prompt(user_request, ctx)  # 含完整步骤历史
+  messages_this_turn = messages + [{"role": "user", "content": analysis_prompt}]
+  → 调用 LLM → 执行工具 → ctx.record_step() → 下一轮
+```
+
+**LLM 输出格式（严格 JSON）**：
+
+```json
+// 继续调用工具
+{"done": false, "tool_call": {"name": "search_files", "arguments": {"directory": "practice05", "keyword": "def"}}}
+
+// 任务完成
+{"done": true, "answer": "共找到 2 个文件，主要定义了以下函数：..."}
+```
+
+**可用工具**：
+
+| 工具 | 功能 |
+|---|---|
+| `search_files` | 递归搜索目录，支持关键词 + 扩展名过滤 |
+| `read_file` | 读取文件内容（超长自动截断） |
+| `curl` | 访问网页，自动去除 HTML 标签 |
+| `write_file` | 写入文件（自动创建目录） |
+| `load_skill_content` | 加载技能 SKILL.md 规则正文 |
+
+**三个测试用例**：
+
+| 测试 | 请求 | 调用链 |
+|---|---|---|
+| test1 | 查找含 `def` 关键词的文件并总结 | `search_files` → `read_file` × N → `done` |
+| test2 | 了解 notice 技能的详细规则 | `load_skill_content` → `done` |
+| test3 | 访问网页并保存摘要到文件 | `curl` → `write_file` → `done` |
+
+**系统提示词设计要点**：
+- 明确每次只决策一步，不预设多步
+- 强调根据实际结果决策，而非提前假设
+- 提供链式调用示例（search → read → done）
+- 上下文变量通过步骤历史传递
+
+**鲁棒性设计**：
+- `max_tokens=4096`：避免 LLM 长回答被截断导致 JSON 不完整
+- `raw_decode` fallback：当 answer 内含花括号模板（如 `{部门名称}`）导致花括号深度匹配失败时，自动回退到 `JSONDecoder.raw_decode()` 宽松解析
+- `enable_thinking=False`：禁用思考过程输出，保证响应格式稳定
+
 ## 项目结构
 
 ```
@@ -456,6 +537,8 @@ code_AI/
 ├── practice05/           # 技能动态加载客户端
 │   ├── skill_client.py       # v1：技能加载
 │   └── skill_client_v2.py    # v2：技能加载 + Markdown 导出
+├── practice06/           # 链式工具调用
+│   └── chained_tool_client.py
 ├── README.md             # 项目文档
 └── venv/                 # 虚拟环境（自动生成）
 ```
