@@ -1,0 +1,34 @@
+digraph G {
+    graph [rankdir=TB, ranksep=0.5, layout=dot, clusterrank="local"];
+    subgraph "cluster_G" {
+
+        graph [style="filled,rounded", fillcolor="#80808018", label=""];
+        "tool_client" [label="tool_client", style="filled", fillcolor="#ffffffb2", fontcolor="#000000", group="0", tooltip="tool_client\nD:\ziliao\code_AI\practice02\tool_client.py"];
+        subgraph "cluster_tool_client" {
+
+            graph [style="filled,rounded", fillcolor="#80808018", label="tool_client"];
+            "tool_client__call_llm_stream" [label="call_llm_stream", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.call_llm_stream\nD:\ziliao\code_AI\practice02\tool_client.py:216\nfunction in tool_client"];
+            "tool_client__create_file" [label="create_file", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.create_file\nD:\ziliao\code_AI\practice02\tool_client.py:127\nfunction in tool_client"];
+            "tool_client__curl" [label="curl", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.curl\nD:\ziliao\code_AI\practice02\tool_client.py:178\nfunction in tool_client"];
+            "tool_client__delete_file" [label="delete_file", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.delete_file\nD:\ziliao\code_AI\practice02\tool_client.py:103\nfunction in tool_client"];
+            "tool_client__execute_tool_call" [label="execute_tool_call", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.execute_tool_call\nD:\ziliao\code_AI\practice02\tool_client.py:379\nfunction in tool_client"];
+            "tool_client__list_files" [label="list_files", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.list_files\nD:\ziliao\code_AI\practice02\tool_client.py:34\nfunction in tool_client"];
+            "tool_client__load_env" [label="load_env", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.load_env\nD:\ziliao\code_AI\practice02\tool_client.py:11\nfunction in tool_client"];
+            "tool_client__main" [label="main", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.main\nD:\ziliao\code_AI\practice02\tool_client.py:411\nfunction in tool_client"];
+            "tool_client__parse_tool_call" [label="parse_tool_call", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.parse_tool_call\nD:\ziliao\code_AI\practice02\tool_client.py:306\nfunction in tool_client"];
+            "tool_client__read_file" [label="read_file", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.read_file\nD:\ziliao\code_AI\practice02\tool_client.py:153\nfunction in tool_client"];
+            "tool_client__rename_file" [label="rename_file", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="tool_client.rename_file\nD:\ziliao\code_AI\practice02\tool_client.py:77\nfunction in tool_client"];
+        }
+    }
+        "tool_client" -> "tool_client__main" [style="solid",  color="#000000"];
+        "tool_client__execute_tool_call" -> "tool_client__create_file" [style="solid",  color="#000000"];
+        "tool_client__execute_tool_call" -> "tool_client__curl" [style="solid",  color="#000000"];
+        "tool_client__execute_tool_call" -> "tool_client__delete_file" [style="solid",  color="#000000"];
+        "tool_client__execute_tool_call" -> "tool_client__list_files" [style="solid",  color="#000000"];
+        "tool_client__execute_tool_call" -> "tool_client__read_file" [style="solid",  color="#000000"];
+        "tool_client__execute_tool_call" -> "tool_client__rename_file" [style="solid",  color="#000000"];
+        "tool_client__main" -> "tool_client__call_llm_stream" [style="solid",  color="#000000"];
+        "tool_client__main" -> "tool_client__execute_tool_call" [style="solid",  color="#000000"];
+        "tool_client__main" -> "tool_client__load_env" [style="solid",  color="#000000"];
+        "tool_client__main" -> "tool_client__parse_tool_call" [style="solid",  color="#000000"];
+    }

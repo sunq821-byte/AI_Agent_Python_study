@@ -65,6 +65,7 @@ def call_llm_stream(messages, env_vars):
         )
 
         response = conn.getresponse()
+        
         if response.status != 200:
             print(f"Error: {response.status}")
             conn.close()

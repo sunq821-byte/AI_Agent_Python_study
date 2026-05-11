@@ -1,0 +1,18 @@
+digraph G {
+    graph [rankdir=TB, ranksep=0.5, layout=dot, clusterrank="local"];
+    subgraph "cluster_G" {
+
+        graph [style="filled,rounded", fillcolor="#80808018", label=""];
+        "llm_client" [label="llm_client", style="filled", fillcolor="#ffffffb2", fontcolor="#000000", group="0", tooltip="llm_client\nD:\ziliao\code_AI\practice01\llm_client.py"];
+        subgraph "cluster_llm_client" {
+
+            graph [style="filled,rounded", fillcolor="#80808018", label="llm_client"];
+            "llm_client__call_llm_stream" [label="call_llm_stream", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="llm_client.call_llm_stream\nD:\ziliao\code_AI\practice01\llm_client.py:33\nfunction in llm_client"];
+            "llm_client__load_env" [label="load_env", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="llm_client.load_env\nD:\ziliao\code_AI\practice01\llm_client.py:10\nfunction in llm_client"];
+            "llm_client__main" [label="main", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0", tooltip="llm_client.main\nD:\ziliao\code_AI\practice01\llm_client.py:124\nfunction in llm_client"];
+        }
+    }
+        "llm_client" -> "llm_client__main" [style="solid",  color="#000000"];
+        "llm_client__main" -> "llm_client__call_llm_stream" [style="solid",  color="#000000"];
+        "llm_client__main" -> "llm_client__load_env" [style="solid",  color="#000000"];
+    }
